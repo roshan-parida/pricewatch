@@ -1,16 +1,16 @@
-import { Icon } from "@iconify/react";
+import { Icon } from "@iconify/react/dist/iconify.js";
 import Image from "next/image";
 import Link from "next/link";
 
 const navIcons = [
-    { icon: "mi:search", alt: "search" },
-    { icon: "mi:heart", alt: "heart" },
-    { icon: "mi:user", alt: "user" },
+    { icon: "bx:search", alt: "search" },
+    { icon: "bx:heart", alt: "heart" },
+    { icon: "bx:user", alt: "user" },
 ];
 
 export const Navbar = () => {
     return (
-        <header className="w-full">
+        <header className="w-full fixed z-10">
             <nav className="nav">
                 <Link href="/" className="flex items-center gap-2">
                     <Image
@@ -26,9 +26,9 @@ export const Navbar = () => {
                 </Link>
 
                 <div className="flex items-center gap-5">
-                    {navIcons.map((icon) => (
+                    {navIcons.map((icon, index) => (
                         <Icon
-                            key={icon.alt}
+                            key={index}
                             icon={icon.icon}
                             width={28}
                             height={28}
