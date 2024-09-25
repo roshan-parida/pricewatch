@@ -1,6 +1,5 @@
 import axios from "axios";
 import * as cheerio from "cheerio";
-import { extractCurrency, extractPrice } from "../utils";
 
 export async function scrapeAmazonProduct(url: string) {
     if (!url) return;
@@ -16,20 +15,24 @@ export async function scrapeAmazonProduct(url: string) {
         const $ = cheerio.load(response.data);
 
         const title = $("#productTitle").text().trim() || null;
-        const currency = extractCurrency($(".a-price-symbol"));
-        const currentPrice = extractPrice(
-            $(".priceToPay span.a-price-whole"),
-            $("a.size.base.a-color-price"),
-            $(".a-button-selected .a-color-base"),
-            $(".a-price.a-text-price")
-        );
-        const originalPrice = extractPrice(
-            $("#priceblock_ourprice"),
-            $(".a-price.a-text-price span.a-offscreen"),
-            $("#listPrice"),
-            $("#priceblock_dealprice"),
-            $(".a-size-base.a-color-price")
-        );
+        const currency = $(".a-price-symbol").text()?.trim().slice(0, 1);
+
+        const currentPrice = $(".a-price .a-price-whole")
+            .first()
+            .text()
+            .trim()
+            .replace(/[^0-9]/g, "");
+        const originalPrice = $(".basisPrice .a-offscreen")
+            .first()
+            .text()
+            .trim()
+            .replace(/[^0-9]/g, "");
+        const discountRate = $(".reinventPriceSavingsPercentageMargin")
+            .first()
+            .text()
+            .trim()
+            .replace(/[-%]/g, "");
+
         const outOfStock =
             $("#availability span").text().trim().toLowerCase() ===
             "currently unavailable";
@@ -38,17 +41,33 @@ export async function scrapeAmazonProduct(url: string) {
             $("#imgblkFront").attr("data-a-dynamic-image") ||
             $("#landingImage").attr("data-a-dynamic-image") ||
             "{}";
-
         const imageUrls = Object.keys(JSON.parse(images));
 
-        console.log({
-            title,
+        const stars = $("span.a-size-base .a-color-base")
+            .text()
+            .trim()
+            .split(" ")[0];
+        const reviewsCount = $("#acrCustomerReviewText")
+            .text()
+            .trim()
+            .split(" ")[0];
+
+        const data = {
+            url,
             currency,
-            currentPrice,
-            originalPrice,
-            outOfStock,
-            imageUrls,
-        });
+            image: imageUrls[0],
+            title,
+            currentPrice: currentPrice,
+            originalPrice: originalPrice,
+            discountRate: discountRate,
+            priceHistory: [],
+            category: "category",
+            stars: stars,
+            reviewsCount: reviewsCount,
+            isOutOfStock: outOfStock,
+        };
+
+        console.log(data);
     } catch (error: any) {
         console.error(`Failed to scrape product: ${error.message}`);
     }
