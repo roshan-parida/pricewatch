@@ -2,6 +2,7 @@ import { getAllProduct } from "@/lib/actions";
 import { HeroCarousel } from "@/components/HeroCarousel";
 import { Searchbar } from "@/components/Searchbar";
 import { Icon } from "@iconify/react/dist/iconify.js";
+import { ProductCard } from "@/components/ProductCard";
 
 const Home = async () => {
 	const allProducts = await getAllProduct();
@@ -41,8 +42,8 @@ const Home = async () => {
 				<h2 className="section-text">Trending</h2>
 
 				<div className="flex flex-wrap gap-x-8 gap-y-16">
-					{allProducts?.map((product, idx) => (
-						<div key={idx}>{product.title}</div>
+					{allProducts?.map((product) => (
+						<ProductCard key={product._id} product={product} />
 					))}
 				</div>
 			</section>
