@@ -8,11 +8,7 @@ const isValidAmazonProductURL = (url: string) => {
         const parsedUrl = new URL(url);
         const hostname = parsedUrl.hostname;
 
-        if (
-            hostname.includes("amazon.com") ||
-            hostname.includes("amazon.") ||
-            hostname.endsWith("amazon")
-        ) {
+        if (hostname.includes("amzn.in")) {
             return true;
         }
     } catch (error) {
@@ -32,7 +28,7 @@ export const Searchbar = () => {
         const isValidLink = isValidAmazonProductURL(searchPrompt);
 
         if (!isValidLink) {
-            return alert("Please provide a valid amazon link.");
+            return alert('Please provide a valid "sharable" amazon link.');
         }
 
         try {

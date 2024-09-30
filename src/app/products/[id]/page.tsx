@@ -2,10 +2,10 @@ import { getProductById, getSimilarProduct } from "@/lib/actions";
 import { Product } from "@/types";
 import { Icon } from "@iconify/react/dist/iconify.js";
 import { formatNumber } from "@/lib/utils";
-import { redirect } from "next/navigation";
 import { PriceInfoCard } from "@/components/PriceInfoCard";
 import { ProductCard } from "@/components/ProductCard";
 import { Modal } from "@/components/Modal";
+import { redirect } from "next/navigation";
 import Link from "next/link";
 
 type Props = {
