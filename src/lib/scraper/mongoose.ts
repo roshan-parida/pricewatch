@@ -3,23 +3,23 @@ import mongoose from "mongoose";
 let isConnected = false;
 
 export const connectToDB = async () => {
-	mongoose.set("strictQuery", true);
+    mongoose.set("strictQuery", true);
 
-	if (!process.env.MONGODB_URI) {
-		return console.log("MONGO_URI IS NOT DEFINED!");
-	}
+    if (!process.env.NEXT_MONGODB_URI) {
+        return console.log("MONGO_URI IS NOT DEFINED!");
+    }
 
-	if (isConnected) {
-		return console.log("=> using existing database connection.");
-	}
+    if (isConnected) {
+        return console.log("=> using existing database connection.");
+    }
 
-	try {
-		await mongoose.connect(process.env.MONGODB_URI);
+    try {
+        await mongoose.connect(process.env.NEXT_MONGODB_URI);
 
-		isConnected = true;
+        isConnected = true;
 
-		console.log("MongoDB Connected!");
-	} catch (error) {
-		console.log(error);
-	}
+        console.log("MongoDB Connected!");
+    } catch (error) {
+        console.log(error);
+    }
 };
