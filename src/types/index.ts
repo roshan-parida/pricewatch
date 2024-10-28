@@ -9,7 +9,7 @@ export type User = {
 export type Product = {
 	_id?: string;
 	url: string;
-	title: string;
+	title: string | null;
 	image: string;
 	currency: string;
 	currentPrice: number;

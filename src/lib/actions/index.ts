@@ -3,12 +3,14 @@
 import { revalidatePath } from "next/cache";
 import { scrapeAmazonProduct } from "../scraper";
 import { connectToDB } from "../scraper/mongoose";
+import { generateEmailBody, sendEmail } from "../nodemailer";
 import {
 	getAveragePrice,
 	getHighestPrice,
 	getLowestPrice,
 	normalizeUrl,
 } from "../utils";
+import { User } from "@/types";
 import Product from "../models/product";
 
 export async function scrapeAndStoreProduct(productUrl: string) {
@@ -102,6 +104,33 @@ export async function getSimilarProduct(productId: string) {
 		const similarProducts = await Product.find(query).limit(3);
 
 		return similarProducts;
+	} catch (error) {
+		console.log(error);
+	}
+}
+
+export async function addUserEmailToProduct(
+	productId: string,
+	userEmail: string,
+) {
+	try {
+		const product = await Product.findById(productId);
+
+		if (!product) return;
+
+		const userExists = product.users.some(
+			(user: User) => user.email === userEmail,
+		);
+
+		if (!userExists) {
+			product.users.push({ email: userEmail });
+
+			await product.save();
+
+			const emailContent = await generateEmailBody(product, "WELCOME");
+
+			await sendEmail(emailContent, [userEmail]);
+		}
 	} catch (error) {
 		console.log(error);
 	}
