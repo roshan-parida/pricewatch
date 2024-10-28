@@ -1,4 +1,4 @@
-import { connectToDB } from "@/lib/scraper/mongoose";
+import { connectToDB } from "@/lib/mongoose";
 import { scrapeAmazonProduct } from "@/lib/scraper";
 import {
 	getAveragePrice,

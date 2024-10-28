@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { scrapeAmazonProduct } from "../scraper";
-import { connectToDB } from "../scraper/mongoose";
+import { connectToDB } from "../mongoose";
 import { generateEmailBody, sendEmail } from "../nodemailer";
 import {
 	getAveragePrice,
