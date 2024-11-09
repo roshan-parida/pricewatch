@@ -56,7 +56,7 @@ export async function GET() {
                 const updatedProduct = await Product.findOneAndUpdate(
                     { url: currentProduct.url },
                     updatedProductData,
-                    { new: true } // Ensures we receive the updated document
+                    { new: true }
                 );
 
                 // Sending Notifications if Necessary
@@ -85,7 +85,6 @@ export async function GET() {
             })
         );
 
-        // Filter out any null results from products that couldn't be updated
         const successfullyUpdatedProducts = updatedProducts.filter(Boolean);
 
         return NextResponse.json({

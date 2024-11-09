@@ -13,19 +13,36 @@
     body {
         @apply font-inter;
     }
+
+    /* Heading Styles for Consistency */
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        @apply font-bold text-gray-900;
+    }
+
+    /* Anchor Links */
+    a {
+        @apply text-secondary hover:text-opacity-80 transition-all ease-in-out;
+    }
 }
 
 @layer utilities {
+    /* Button styles */
     .btn {
-        @apply py-4 px-4 bg-secondary-button hover:bg-opacity-70 transition-all ease-in-out rounded-[30px] text-secondary text-lg font-semibold;
+        @apply py-4 px-4 bg-secondary-button hover:bg-opacity-70 transition-all ease-in-out rounded-[30px] text-secondary text-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed;
     }
 
+    /* Typography */
     .head-text {
-        @apply mt-4 text-6xl leading-[72px] font-bold tracking-[-1.2px] text-gray-900;
+        @apply mt-4 text-5xl sm:text-6xl leading-[72px] font-bold tracking-[-1.2px] text-gray-900;
     }
 
     .section-text {
-        @apply text-secondary text-[32px] font-semibold;
+        @apply text-secondary text-2xl sm:text-3xl font-semibold;
     }
 
     .small-text {
@@ -36,12 +53,13 @@
         @apply text-xl leading-[30px] text-gray-600;
     }
 
+    /* Hero Carousel */
     .hero-carousel {
-        @apply relative sm:px-10 py-5 sm:pt-20 pb-5 max-w-[560px] h-[700px] w-full bg-[#F2F4F7] rounded-[30px] sm:mx-auto;
+        @apply relative sm:px-10 py-5 sm:pt-20 pb-5 max-w-[560px] h-[60vh] sm:h-[700px] w-full bg-[#F2F4F7] rounded-[30px] sm:mx-auto;
     }
 
     .carousel {
-        @apply flex flex-col-reverse h-[700px];
+        @apply flex flex-col-reverse h-full;
     }
 
     .carousel .control-dots {
@@ -73,25 +91,19 @@
         @apply flex items-center justify-between flex-wrap gap-10 py-6 border-y border-y-[#E4E4E4];
     }
 
-    .product-hearts {
-        @apply flex items-center gap-2 px-3 py-2 bg-yellow-100 rounded-10;
-    }
-
-    .product-stars {
+    .product-hearts,
+    .product-stars,
+    .product-reviews {
         @apply flex items-center gap-2 px-3 py-2 bg-[#FBF3EA] rounded-[27px];
     }
 
-    .product-reviews {
-        @apply flex items-center gap-2 px-3 py-2 bg-white-200 rounded-[27px];
-    }
-
-    /* MODAL */
+    /* Modal Styles */
     .dialog-container {
         @apply fixed inset-0 z-10 overflow-y-auto bg-black bg-opacity-60;
     }
 
     .dialog-content {
-        @apply p-6  bg-white inline-block w-full max-w-md my-8 overflow-hidden text-left align-middle transition-all transform  shadow-xl rounded-2xl;
+        @apply p-6 bg-white inline-block w-full max-w-md my-8 overflow-hidden text-left align-middle transition-all transform shadow-xl rounded-2xl;
     }
 
     .dialog-head_text {
@@ -110,7 +122,7 @@
         @apply px-5 py-3 text-white text-base font-semibold border border-secondary bg-secondary rounded-lg mt-8;
     }
 
-    /* NAVBAR */
+    /* Navbar Styles */
     .nav {
         @apply flex justify-between items-center px-6 md:px-20 py-4;
     }
@@ -119,14 +131,14 @@
         @apply font-spaceGrotesk text-[21px] text-secondary font-bold;
     }
 
-    /* PRICE INFO */
+    /* Price Info Card */
     .price-info_card {
         @apply flex-1 min-w-[200px] flex flex-col gap-2 border-l-[3px] rounded-10 bg-gray-200 px-5 py-4;
     }
 
-    /* PRODUCT CARD */
+    /* Product Card */
     .product-card {
-        @apply sm:w-[292px] sm:max-w-[292px] w-full flex-1 flex flex-col gap-4 rounded-md;
+        @apply sm:w-[292px] sm:max-w-[292px] w-full flex-1 flex flex-col gap-4 rounded-lg bg-gray-200;
     }
 
     .product-card_img-container {
@@ -141,12 +153,31 @@
         @apply text-secondary text-xl leading-6 font-semibold truncate;
     }
 
-    /* SEARCHBAR INPUT */
+    /* Searchbar */
     .searchbar-input {
         @apply flex-1 min-w-[200px] w-full p-3 border border-gray-300 rounded-lg shadow-xs text-base text-gray-500 focus:outline-none;
     }
 
     .searchbar-btn {
         @apply bg-secondary-button rounded-lg shadow-xs px-5 py-3 text-secondary text-base font-semibold hover:scale-110 transition-all ease-in-out disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-40;
+    }
+
+    /* Spinner */
+    .spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #3498db;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 2s linear infinite;
+    }
+
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
     }
 }

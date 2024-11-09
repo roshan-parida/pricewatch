@@ -2,22 +2,34 @@ import mongoose from "mongoose";
 
 let isConnected = false;
 
-export const connectToDB = async () => {
-	mongoose.set("strictQuery", true);
+export const connectToDB = async (): Promise<void> => {
+    mongoose.set("strictQuery", true);
 
-	if (!process.env.NEXT_MONGODB_URI)
-		return console.log("MONGODB_URI is not defined");
+    const mongoURI = process.env.NEXT_MONGODB_URI;
+    if (!mongoURI) {
+        throw new Error(
+            "Environment variable NEXT_MONGODB_URI is not defined."
+        );
+    }
 
-	if (isConnected)
-		return console.log("=> using existing database connection");
+    if (isConnected) {
+        console.log("=> Using existing database connection");
+        return;
+    }
 
-	try {
-		await mongoose.connect(process.env.NEXT_MONGODB_URI);
-
-		isConnected = true;
-
-		console.log("MongoDB Connected");
-	} catch (error) {
-		console.log(error);
-	}
+    try {
+        await mongoose.connect(mongoURI);
+        isConnected = true;
+        console.log("MongoDB connected successfully.");
+    } catch (error) {
+        if (error instanceof Error) {
+            console.error(
+                `MongoDB connection error: ${error.name} - ${error.message}`
+            );
+        } else {
+            console.error(
+                "An unknown error occurred while connecting to MongoDB."
+            );
+        }
+    }
 };

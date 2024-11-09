@@ -16,12 +16,13 @@ export const PriceInfoCard = ({
     iconColor,
 }: Props) => {
     return (
-        <div className={`price-info_card border-1 ${borderColor}`}>
-            <p className="text-base text-black-100">{title}</p>
+        <div
+            className={`price-info_card border ${borderColor} p-4 rounded-lg shadow-md`}
+        >
+            <p className="text-base text-gray-700 font-semibold">{title}</p>
 
-            <div className="flex gap-2 items-center">
+            <div className="flex gap-2 items-center mt-2">
                 <Icon icon={iconSrc} className={`w-6 h-6 ${iconColor}`} />
-
                 <p className="text-2xl font-bold text-secondary">{value}</p>
             </div>
         </div>

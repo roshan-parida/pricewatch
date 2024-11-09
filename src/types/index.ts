@@ -14,7 +14,7 @@ export type Product = {
     currency: string;
     currentPrice: number;
     originalPrice: number;
-    priceHistory: PriceHistoryItem[] | [];
+    priceHistory: PriceHistoryItem[];
     highestPrice: number;
     lowestPrice: number;
     averagePrice: number;
@@ -28,8 +28,8 @@ export type Product = {
 
 export type NotificationType =
     | "WELCOME"
-    | "CHANGE_OF_STOCK"
-    | "LOWEST_PRICE"
+    | "CHANGE OF STOCK"
+    | "LOWEST PRICE"
     | "THRESHOLD_MET";
 
 export type EmailContent = {

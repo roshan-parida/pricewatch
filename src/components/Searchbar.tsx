@@ -4,61 +4,75 @@ import { FormEvent, useState } from "react";
 import { scrapeAndStoreProduct } from "@/lib/actions";
 
 const isValidAmazonProductURL = (url: string) => {
-	try {
-		const parsedUrl = new URL(url);
-		const hostname = parsedUrl.hostname;
+    try {
+        const parsedUrl = new URL(url);
+        const hostname = parsedUrl.hostname;
 
-		if (hostname.includes("amazon")) {
-			return true;
-		}
-	} catch (error) {
-		return false;
-	}
+        if (hostname.includes("amazon")) {
+            return true;
+        }
+    } catch (error) {
+        return false;
+    }
 
-	return false;
+    return false;
 };
 
 export const Searchbar = () => {
-	const [searchPrompt, setSearchPrompt] = useState("");
-	const [isLoading, setIsLoading] = useState(false);
+    const [searchPrompt, setSearchPrompt] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
-	const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-		event.preventDefault();
+    const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
 
-		const isValidLink = isValidAmazonProductURL(searchPrompt);
+        const isValidLink = isValidAmazonProductURL(searchPrompt);
 
-		if (!isValidLink) {
-			return alert('Please provide a valid "sharable" amazon link.');
-		}
+        if (!isValidLink) {
+            setError('Please provide a valid "shareable" Amazon product link.');
+            return;
+        }
 
-		try {
-			setIsLoading(true);
+        try {
+            setIsLoading(true);
+            setError(null);
 
-			const product = await scrapeAndStoreProduct(searchPrompt);
-		} catch (error) {
-			console.log(error);
-		} finally {
-			setIsLoading(false);
-		}
-	};
+            const product = await scrapeAndStoreProduct(searchPrompt);
+        } catch (error) {
+            console.log(error);
+            setError(
+                "An error occurred while searching for the product. Please try again."
+            );
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
-	return (
-		<form className="flex flex-wrap gap-4 mt-12" onSubmit={handleSubmit}>
-			<input
-				type="text"
-				placeholder="Enter product link"
-				value={searchPrompt}
-				onChange={(e) => setSearchPrompt(e.target.value)}
-				className="searchbar-input"
-			/>
+    return (
+        <form className="flex flex-wrap gap-4 mt-12" onSubmit={handleSubmit}>
+            <input
+                type="text"
+                placeholder="Enter product link"
+                value={searchPrompt}
+                onChange={(e) => setSearchPrompt(e.target.value)}
+                className="searchbar-input"
+                disabled={isLoading}
+                aria-describedby="search-error"
+            />
 
-			<button
-				type="submit"
-				className="searchbar-btn"
-				disabled={searchPrompt === ""}
-			>
-				{isLoading ? "searching..." : "Search"}
-			</button>
-		</form>
-	);
+            <button
+                type="submit"
+                className="searchbar-btn"
+                disabled={searchPrompt === "" || isLoading}
+            >
+                {isLoading ? "Searching..." : "Search"}
+            </button>
+
+            {error && (
+                <p id="search-error" className="text-red-600 text-sm mt-2">
+                    {error}
+                </p>
+            )}
+        </form>
+    );
 };
