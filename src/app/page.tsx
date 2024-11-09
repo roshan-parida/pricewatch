@@ -18,7 +18,8 @@ const Home = () => {
             try {
                 setLoading(true);
                 const products = await getAllProduct();
-                setAllProducts(products);
+
+                setAllProducts(products || []);
             } catch (error: any) {
                 console.error("Failed to fetch products:", error);
                 setError("Unable to load products. Please try again later.");

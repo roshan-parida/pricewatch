@@ -48,8 +48,8 @@ export const HeroCarousel = () => {
                         <Image
                             src={image.imgUrl}
                             alt={image.alt}
-                            height={484}
-                            width={484}
+                            height={100}
+                            width={100}
                             className="object-contain"
                         />
                     </div>
