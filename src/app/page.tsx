@@ -7,6 +7,10 @@ import { Icon } from "@iconify/react/dist/iconify.js";
 import { ProductCard } from "@/components/ProductCard";
 import { Product } from "@/types";
 
+export const maxDuration = 60;
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 const Home = () => {
     const [allProducts, setAllProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
