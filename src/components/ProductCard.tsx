@@ -11,7 +11,7 @@ export const ProductCard = ({ product }: Props) => {
     return (
         <Link
             href={`/products/${product._id}`}
-            className="product-card border gray p-4 shadow-md hover:shadow-lg transition-all"
+            className="product-card fade-in border gray p-4 shadow-md hover:shadow-lg transition-all"
         >
             <div className="product-card_img-container">
                 <Image

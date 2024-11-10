@@ -17,7 +17,7 @@ export const PriceInfoCard = ({
 }: Props) => {
     return (
         <div
-            className={`price-info_card border ${borderColor} p-4 rounded-lg shadow-md`}
+            className={`price-info_card fade-in border ${borderColor} p-4 rounded-lg shadow-md`}
         >
             <p className="text-base text-gray-700 font-semibold">{title}</p>
 

@@ -10,11 +10,13 @@ import {
     getLowestPrice,
     normalizeUrl,
 } from "../utils";
-import { User, NotificationType } from "@/types";
+import { User, NotificationType, Product as ProductType } from "@/types";
 import Product from "../models/product";
 
-export async function scrapeAndStoreProduct(productUrl: string) {
-    if (!productUrl) return;
+export async function scrapeAndStoreProduct(
+    productUrl: string
+): Promise<ProductType | null> {
+    if (!productUrl) return null;
 
     try {
         await connectToDB();
@@ -22,7 +24,7 @@ export async function scrapeAndStoreProduct(productUrl: string) {
         const normalizedUrl = normalizeUrl(productUrl);
         const scrapedProduct = await scrapeAmazonProduct(normalizedUrl);
 
-        if (!scrapedProduct) return;
+        if (!scrapedProduct) return null;
         let product = scrapedProduct;
 
         const existingProduct = await Product.findOne({
@@ -53,7 +55,13 @@ export async function scrapeAndStoreProduct(productUrl: string) {
             { upsert: true, new: true }
         );
 
+        if (!newProduct) {
+            throw new Error("Product could not be created or updated.");
+        }
+
         revalidatePath(`/products/${newProduct._id}`);
+
+        return newProduct.toObject();
     } catch (error: any) {
         throw new Error(`Failed to create/update product: ${error.message}`);
     }
@@ -67,7 +75,19 @@ export async function getProductById(productId: string) {
 
         if (!product) return null;
 
-        return product;
+        return {
+            ...product.toObject(),
+            _id: product._id.toString(),
+            priceHistory: product.priceHistory.map(
+                (entry: {
+                    price: number;
+                    date: { toISOString: () => any };
+                }) => ({
+                    price: entry.price,
+                    date: entry.date.toISOString(),
+                })
+            ),
+        };
     } catch (error) {
         console.log(error);
     }
@@ -82,6 +102,15 @@ export async function getAllProduct() {
         const formattedProducts = products.map((product) => ({
             ...product.toObject(),
             _id: product._id.toString(),
+            priceHistory: product.priceHistory.map(
+                (entry: {
+                    price: number;
+                    date: { toISOString: () => any };
+                }) => ({
+                    price: entry.price,
+                    date: entry.date.toISOString(),
+                })
+            ),
         }));
 
         return formattedProducts;
@@ -109,7 +138,19 @@ export async function getSimilarProduct(productId: string) {
 
         const similarProducts = await Product.find(query).limit(3);
 
-        return similarProducts;
+        return similarProducts.map((product) => ({
+            ...product.toObject(),
+            _id: product._id.toString(),
+            priceHistory: product.priceHistory.map(
+                (entry: {
+                    price: number;
+                    date: { toISOString: () => any };
+                }) => ({
+                    price: entry.price,
+                    date: entry.date.toISOString(),
+                })
+            ),
+        }));
     } catch (error) {
         console.log(error);
     }

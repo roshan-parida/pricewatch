@@ -1,3 +1,5 @@
+"use client";
+
 import { getProductById, getSimilarProduct } from "@/lib/actions";
 import { Product } from "@/types";
 import { Icon } from "@iconify/react/dist/iconify.js";
@@ -6,18 +8,59 @@ import { PriceInfoCard } from "@/components/PriceInfoCard";
 import { ProductCard } from "@/components/ProductCard";
 import { Modal } from "@/components/Modal";
 import { redirect } from "next/navigation";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 
 type Props = {
     params: { id: string };
 };
 
-const ProductDetails = async ({ params: { id } }: Props) => {
-    const product: Product = await getProductById(id);
+const ProductDetails = ({ params: { id } }: Props) => {
+    const [product, setProduct] = useState<Product | null>(null);
+    const [similarProducts, setSimilarProducts] = useState<Product[]>([]);
+    const [loading, setLoading] = useState(true);
 
-    if (!product) redirect("/");
+    useEffect(() => {
+        const fetchProductDetails = async () => {
+            try {
+                setLoading(true);
 
-    const similarProducts = await getSimilarProduct(id);
+                const fetchedProduct = await getProductById(id);
+                const fetchedSimilarProducts = await getSimilarProduct(id);
+
+                if (!fetchedProduct) {
+                    redirect("/");
+                }
+
+                setProduct(fetchedProduct);
+                setSimilarProducts(fetchedSimilarProducts || []);
+            } catch (error) {
+                console.error("Failed to load product details:", error);
+                redirect("/");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProductDetails();
+    }, [id]);
+
+    if (loading) {
+        return (
+            <div className="product-skeleton flex flex-col gap-6">
+                <div className="skeleton skeleton-title h-8 w-3/4 bg-gray-300 rounded-md"></div>
+                <div className="skeleton skeleton-price h-6 w-1/4 bg-gray-300 rounded-md"></div>
+                <div className="skeleton skeleton-image h-64 w-96 bg-gray-300 rounded-md fade-in"></div>
+                <div className="skeleton skeleton-description h-4 w-full bg-gray-300 rounded-md"></div>
+                <div className="skeleton skeleton-reviews h-5 w-1/2 bg-gray-300 rounded-md"></div>
+                <div className="skeleton skeleton-similar-products h-10 w-full bg-gray-300 rounded-md"></div>
+            </div>
+        );
+    }
+
+    if (!product) {
+        return <p className="text-center">Product not found.</p>;
+    }
 
     return (
         <div className="product-container">
@@ -26,7 +69,8 @@ const ProductDetails = async ({ params: { id } }: Props) => {
                     <img
                         src={product.image}
                         alt={product.title}
-                        className="m-auto w-96 p-4 border border-[#CDDBFF] rounded-[17px]"
+                        className="m-auto w-96 p-4 border border-[#CDDBFF] rounded-[17px] fade-in"
+                        loading="lazy"
                     />
                 </div>
 
@@ -40,9 +84,15 @@ const ProductDetails = async ({ params: { id } }: Props) => {
                             <Link
                                 href={product.url}
                                 target="_blank"
-                                className="text-base text-black opacity-50"
+                                className="flex items-center justify-center w-32 h-10 gap-2 px-4 py-2 rounded-full bg-secondary-button text-white hover:scale-105 transition duration-200"
                             >
-                                Visit Product
+                                <Icon
+                                    icon="ant-design:amazon-circle-filled"
+                                    className="size-8 text-black"
+                                />
+                                <span className="font-semibold text-black">
+                                    Amazon
+                                </span>
                             </Link>
                         </div>
                     </div>
@@ -61,24 +111,28 @@ const ProductDetails = async ({ params: { id } }: Props) => {
                         </div>
 
                         <div className="flex items-center justify-end gap-3">
-                            <div className="product-hearts">
+                            <div
+                                className="product-hearts"
+                                aria-label={`Rating: ${product.stars} stars`}
+                            >
                                 <Icon
                                     icon="solar:star-outline"
-                                    className="w-5 h-5 text-yellow-600"
+                                    className="w-5 h-5 text-secondary-high"
                                 />
-
-                                <p className="text-base font-semibold text-yellow-600">
+                                <p className="text-base font-semibold text-secondary-high">
                                     {product.stars}
                                 </p>
                             </div>
 
-                            <div className="product-hearts">
+                            <div
+                                className="product-hearts"
+                                aria-label={`Reviews count: ${product.reviewsCount}`}
+                            >
                                 <Icon
                                     icon="solar:document-text-outline"
-                                    className="w-5 h-5 text-yellow-600"
+                                    className="w-5 h-5 text-secondary-high"
                                 />
-
-                                <p className="text-base font-semibold text-yellow-600">
+                                <p className="text-base font-semibold text-secondary-high">
                                     {product.reviewsCount}
                                 </p>
                             </div>
@@ -131,10 +185,9 @@ const ProductDetails = async ({ params: { id } }: Props) => {
             </div>
 
             {similarProducts && similarProducts.length > 0 && (
-                <div className="py-14 flex flex-col gap-2 w-full">
+                <div className="similar-products-section py-14">
                     <p className="section-text">Similar Products</p>
-
-                    <div className="flex flex-wrap gap-10 mt-7 w-full">
+                    <div className="similar-products mt-7 w-full">
                         {similarProducts.map((product) => (
                             <ProductCard
                                 key={String(product._id)}
