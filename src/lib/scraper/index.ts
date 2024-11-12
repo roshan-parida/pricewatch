@@ -1,38 +1,41 @@
 import axios from "axios";
 import * as cheerio from "cheerio";
+import { Product } from "@/types";
 
 const USER_AGENTS = [
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; en-IN) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7; en-IN) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.2 Safari/605.1.15",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; en-IN) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7; en-IN) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.96 Safari/537.36",
     "Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X; en-IN) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1",
-    "Mozilla/5.0 (Linux; Android 10; SM-G975F; en-IN) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.91 Mobile Safari/537.36",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; en-IN) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36",
 ];
 
 function getRandomUserAgent() {
     return USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)];
 }
 
-async function fetchProductPage(url: string, retries = 3, delay = 1000) {
+async function fetchProductPage(
+    url: string,
+    retries = 3,
+    delay = 1000
+): Promise<any> {
+    const userAgent = getRandomUserAgent();
     for (let attempt = 1; attempt <= retries; attempt++) {
-        const userAgent = getRandomUserAgent();
         try {
-            await new Promise((resolve) =>
-                setTimeout(resolve, delay * Math.pow(2, attempt - 1))
-            );
-
             return await axios.get(url, {
                 headers: { "User-Agent": userAgent },
                 timeout: 10000,
             });
         } catch (error) {
             console.error(
-                `Attempt ${attempt} - Failed to fetch ${url}: ${
+                `Failed to scrape product at ${url}: ${
                     (error as Error).message
                 }`
             );
 
-            if (attempt === retries) {
+            if (attempt < retries) {
+                await new Promise((resolve) =>
+                    setTimeout(resolve, delay * attempt)
+                );
+            } else {
                 console.error(`Max retries reached for ${url}`);
                 throw error;
             }
@@ -40,7 +43,9 @@ async function fetchProductPage(url: string, retries = 3, delay = 1000) {
     }
 }
 
-export async function scrapeAmazonProduct(url: string) {
+export async function scrapeAmazonProduct(
+    url: string
+): Promise<Product | null> {
     if (!url) return null;
 
     try {
@@ -51,14 +56,15 @@ export async function scrapeAmazonProduct(url: string) {
         const $ = cheerio.load(response.data);
 
         const title = $("#productTitle").text().trim() || "Unknown Title";
-
         const currency = $(".a-price-symbol").text().trim().slice(0, 1) || "$";
+
         const currentPriceText = $(".a-price .a-price-whole")
             .first()
             .text()
             .trim()
             .replace(/[^0-9]/g, "");
         const currentPrice = currentPriceText ? Number(currentPriceText) : 0;
+
         const originalPriceText = $(".basisPrice .a-offscreen")
             .first()
             .text()
@@ -67,6 +73,7 @@ export async function scrapeAmazonProduct(url: string) {
         const originalPrice = originalPriceText
             ? Number(originalPriceText)
             : currentPrice;
+
         const discountRateText = $(".reinventPriceSavingsPercentageMargin")
             .first()
             .text()
@@ -79,8 +86,8 @@ export async function scrapeAmazonProduct(url: string) {
             .trim()
             .toLowerCase();
         const outOfStock =
-            outOfStockText === "currently unavailable" ||
-            outOfStockText === "out of stock";
+            outOfStockText.includes("currently unavailable") ||
+            outOfStockText.includes("out of stock");
 
         const imagesData =
             $("#imgblkFront").attr("data-a-dynamic-image") ||
@@ -90,9 +97,12 @@ export async function scrapeAmazonProduct(url: string) {
         const image = imageUrls[0] || "";
 
         const category =
-            $("a.a-link-normal.a-color-tertiary").first().text().trim() || "";
+            $("a.a-link-normal.a-color-tertiary").first().text().trim() ||
+            "Not Found";
+
         const starsText = $("span.a-size-base .a-color-base").text().trim();
         const stars = parseFloat(starsText.split(" ")[0]) || 0;
+
         const reviewsCountText = $("#acrCustomerReviewText")
             .text()
             .trim()
@@ -100,7 +110,7 @@ export async function scrapeAmazonProduct(url: string) {
             .replace(/[^0-9]/g, "");
         const reviewsCount = reviewsCountText ? Number(reviewsCountText) : 0;
 
-        const data = {
+        const data: Product = {
             url,
             title,
             currency,
