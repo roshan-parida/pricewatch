@@ -10,38 +10,37 @@ import Product from "@/lib/models/product";
 import { scrapeAmazonProduct } from "@/lib/scraper";
 import { generateEmailBody, sendEmail } from "@/lib/nodemailer";
 
+export const maxduration = 60;
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
+const MAX_PRODUCTS_PER_BATCH = 5;
 
 export async function GET(request: Request) {
     try {
         await connectToDB();
-
         const products = await Product.find({});
         if (!products || products.length === 0)
             throw new Error("No products fetched");
 
-        const MAX_PRODUCTS_PER_BATCH = 10;
-        const updatedProducts = [];
+        const updatedProducts: any[] = [];
 
         for (let i = 0; i < products.length; i += MAX_PRODUCTS_PER_BATCH) {
             const productBatch = products.slice(i, i + MAX_PRODUCTS_PER_BATCH);
 
-            const updatedBatch = await Promise.all(
+            const batchResults = await Promise.allSettled(
                 productBatch.map(async (currentProduct) => {
                     try {
                         const scrapedProduct = await scrapeAmazonProduct(
                             currentProduct.url
                         );
-                        if (!scrapedProduct)
-                            throw new Error("Failed to scrape product");
+                        if (!scrapedProduct) return null;
 
                         const updatedPriceHistory = [
                             ...currentProduct.priceHistory,
                             { price: scrapedProduct.currentPrice },
                         ];
 
-                        const product = {
+                        const productUpdate = {
                             ...scrapedProduct,
                             priceHistory: updatedPriceHistory,
                             lowestPrice: getLowestPrice(updatedPriceHistory),
@@ -50,66 +49,58 @@ export async function GET(request: Request) {
                         };
 
                         const updatedProduct = await Product.findOneAndUpdate(
-                            { url: product.url },
-                            product,
+                            { url: scrapedProduct.url },
+                            productUpdate,
                             { new: true }
                         );
-
-                        if (!updatedProduct)
-                            throw new Error("Failed to update product in DB");
 
                         const emailNotifType = getEmailNotifType(
                             scrapedProduct,
                             currentProduct
                         );
                         if (emailNotifType && updatedProduct.users.length > 0) {
-                            const productInfo = {
-                                title: updatedProduct.title,
-                                url: updatedProduct.url,
-                            };
                             const emailContent = await generateEmailBody(
-                                productInfo,
+                                {
+                                    title: updatedProduct.title,
+                                    url: updatedProduct.url,
+                                },
                                 emailNotifType
                             );
                             const userEmails = updatedProduct.users.map(
                                 (user: any) => user.email
                             );
-
                             await sendEmail(emailContent, userEmails);
                         }
 
                         return updatedProduct;
                     } catch (productError) {
-                        const errorMessage =
-                            productError instanceof Error
-                                ? productError.message
-                                : "Unknown error";
                         console.error(
-                            `Error processing product: ${currentProduct.url} - ${errorMessage}`
+                            `Product processing error: ${productError}`
                         );
                         return null;
                     }
                 })
             );
 
-            updatedProducts.push(...updatedBatch.filter(Boolean));
+            updatedProducts.push(
+                ...batchResults
+                    .filter((result) => result.status === "fulfilled")
+                    .map(
+                        (result) =>
+                            (result as PromiseFulfilledResult<any>).value
+                    )
+            );
         }
 
-        const response = {
-            message: "Ok",
-            data:
-                updatedProducts.length <= 100
-                    ? updatedProducts
-                    : `Processed ${updatedProducts.length} products`,
-        };
-
-        return NextResponse.json(response);
+        return NextResponse.json({ message: "Ok", data: updatedProducts });
     } catch (error) {
-        const errorMessage =
-            error instanceof Error ? error.message : "Unknown error";
-        console.error(`Failed to get all products: ${errorMessage}`);
+        console.error(`Function error: ${error}`);
         return NextResponse.json(
-            { error: "Failed to get products", message: errorMessage },
+            {
+                error: "Failed to process products",
+                message:
+                    error instanceof Error ? error.message : "Unknown error",
+            },
             { status: 500 }
         );
     }
