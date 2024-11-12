@@ -55,7 +55,7 @@ export const Modal = ({ productId }: Props) => {
                                 <div className="flex justify-between items-center">
                                     <div className="p-3 border border-gray-200 rounded-10">
                                         <Image
-                                            src="/pricewatch.svg"
+                                            src="/pricewatch.png"
                                             alt="logo"
                                             width={28}
                                             height={28}

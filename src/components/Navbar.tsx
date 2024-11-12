@@ -11,10 +11,10 @@ export const Navbar = () => {
                     aria-label="Go to homepage"
                 >
                     <Image
-                        src="/pricewatch.svg"
+                        src="/pricewatch.png"
                         alt="PriceWatch Logo"
-                        width={27}
-                        height={27}
+                        width={34}
+                        height={34}
                         className="transition-all duration-300 ease-in-out"
                     />
 

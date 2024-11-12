@@ -112,7 +112,7 @@ const ProductDetails = ({ params: { id } }: Props) => {
 
                         <div className="flex items-center justify-end gap-3">
                             <div
-                                className="product-hearts"
+                                className="product-stars"
                                 aria-label={`Rating: ${product.stars} stars`}
                             >
                                 <Icon
@@ -125,7 +125,7 @@ const ProductDetails = ({ params: { id } }: Props) => {
                             </div>
 
                             <div
-                                className="product-hearts"
+                                className="product-reviews"
                                 aria-label={`Reviews count: ${product.reviewsCount}`}
                             >
                                 <Icon
@@ -133,7 +133,7 @@ const ProductDetails = ({ params: { id } }: Props) => {
                                     className="w-5 h-5 text-secondary-high"
                                 />
                                 <p className="text-base font-semibold text-secondary-high">
-                                    {product.reviewsCount}
+                                    {formatNumber(product.reviewsCount)}
                                 </p>
                             </div>
                         </div>

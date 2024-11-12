@@ -11,98 +11,112 @@ import { NextResponse } from "next/server";
 import Product from "@/lib/models/product";
 import { Product as ProductType, User, EmailContent } from "@/types/index";
 
-export const maxDuration = 60;
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+const BATCH_SIZE = 10;
 
 export async function GET() {
     try {
         await connectToDB();
 
         const products: ProductType[] = await Product.find({});
-
         if (products.length === 0) {
             return NextResponse.json({ message: "No products to update." });
         }
 
-        const updatedProducts = await Promise.all(
-            products.map(async (currentProduct) => {
-                // Scraping Product Data
-                const scrapedProduct = await scrapeAmazonProduct(
-                    currentProduct.url
-                );
-                if (!scrapedProduct) {
-                    console.warn(
-                        `Failed to scrape product at URL: ${currentProduct.url}`
-                    );
-                    return null;
-                }
+        const batches = Math.ceil(products.length / BATCH_SIZE);
+        const updatedProducts = [];
 
-                // Updating Price History and Calculating Stats
-                const updatedPriceHistory = [
-                    ...currentProduct.priceHistory,
-                    { price: scrapedProduct.currentPrice },
-                ];
+        for (let i = 0; i < batches; i++) {
+            const batch = products.slice(i * BATCH_SIZE, (i + 1) * BATCH_SIZE);
 
-                const updatedProductData = {
-                    ...scrapedProduct,
-                    priceHistory: updatedPriceHistory,
-                    lowestPrice: getLowestPrice(updatedPriceHistory),
-                    highestPrice: getHighestPrice(updatedPriceHistory),
-                    averagePrice: getAveragePrice(updatedPriceHistory),
-                };
+            const batchUpdates = await Promise.all(
+                batch.map(async (currentProduct) => {
+                    try {
+                        const scrapedProduct = await scrapeAmazonProduct(
+                            currentProduct.url
+                        );
+                        if (!scrapedProduct) {
+                            console.warn(
+                                `Failed to scrape product at URL: ${currentProduct.url}`
+                            );
+                            return null;
+                        }
 
-                // Saving Updated Product to Database
-                const updatedProduct = await Product.findOneAndUpdate(
-                    { url: currentProduct.url },
-                    updatedProductData,
-                    { new: true }
-                );
+                        const updatedPriceHistory = [
+                            ...currentProduct.priceHistory,
+                            { price: scrapedProduct.currentPrice },
+                        ];
 
-                // Sending Notifications if Necessary
-                const emailNotifType = getEmailNotifType(
-                    scrapedProduct,
-                    currentProduct
-                );
-                if (emailNotifType && updatedProduct?.users?.length) {
-                    const productInfo = {
-                        title: updatedProduct.title,
-                        url: updatedProduct.url,
-                    };
+                        const updatedProductData = {
+                            ...scrapedProduct,
+                            priceHistory: updatedPriceHistory,
+                            lowestPrice: getLowestPrice(updatedPriceHistory),
+                            highestPrice: getHighestPrice(updatedPriceHistory),
+                            averagePrice: getAveragePrice(updatedPriceHistory),
+                        };
 
-                    const emailContent: EmailContent = await generateEmailBody(
-                        productInfo,
-                        emailNotifType
-                    );
-                    const userEmails = updatedProduct.users.map(
-                        (user: User) => user.email
-                    );
+                        const updatedProduct = await Product.findOneAndUpdate(
+                            { url: currentProduct.url },
+                            updatedProductData,
+                            { new: true }
+                        );
 
-                    await sendEmail(emailContent, userEmails);
-                }
+                        const emailNotifType = getEmailNotifType(
+                            scrapedProduct,
+                            currentProduct
+                        );
+                        if (emailNotifType && updatedProduct?.users?.length) {
+                            const productInfo = {
+                                title: updatedProduct.title,
+                                url: updatedProduct.url,
+                            };
 
-                return updatedProduct;
-            })
-        );
+                            const emailContent: EmailContent =
+                                await generateEmailBody(
+                                    productInfo,
+                                    emailNotifType
+                                );
+                            const userEmails = updatedProduct.users.map(
+                                (user: User) => user.email
+                            );
 
-        const successfullyUpdatedProducts = updatedProducts.filter(Boolean);
+                            await sendEmail(emailContent, userEmails);
+                        }
+
+                        return updatedProduct;
+                    } catch (err) {
+                        console.error(
+                            `Error processing product ${currentProduct.url}: ${
+                                err instanceof Error ? err.message : err
+                            }`
+                        );
+                        return null;
+                    }
+                })
+            );
+
+            updatedProducts.push(...batchUpdates.filter(Boolean));
+        }
 
         return NextResponse.json({
             message: "Products updated",
-            data: successfullyUpdatedProducts,
+            data: updatedProducts,
         });
     } catch (error: unknown) {
-        if (error instanceof Error) {
-            console.error(`Error in cron GET: ${error.message}`);
-            return NextResponse.json(
-                { message: `Error updating products: ${error.message}` },
-                { status: 500 }
-            );
-        } else {
-            console.error(`Unknown error occurred.`);
-            return NextResponse.json(
-                { message: "Unknown error occurred during product update." },
-                { status: 500 }
-            );
-        }
+        console.error(
+            `Error in cron GET: ${
+                error instanceof Error ? error.message : "Unknown error"
+            }`
+        );
+        return NextResponse.json(
+            {
+                message: `Error updating products: ${
+                    error instanceof Error ? error.message : "Unknown error"
+                }`,
+            },
+            { status: 500 }
+        );
     }
 }
