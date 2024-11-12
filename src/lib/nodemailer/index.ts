@@ -29,43 +29,43 @@ export async function generateEmailBody(
         case Notification.WELCOME:
             subject = `Welcome to Price Tracking for ${shortenedTitle}`;
             body = `
-				<div>
-					<h2>Welcome to PriceWatch 🚀</h2>
-					<p>You are now tracking <strong>${product.title}</strong>.</p>
-					<p>Here's an example of how you'll receive updates:</p>
-					<div style="border: 1px solid #ccc; padding: 10px; background-color: #f8f8f8;">
-						<h3>${product.title} is back in stock!</h3>
-						<p>Don't miss out - <a href="${product.url}" target="_blank" rel="noopener noreferrer">buy it now</a>!</p>
-						<img src="https://i.ibb.co/pwFBRMC/Screenshot-2023-09-26-at-1-47-50-AM.png" alt="Product Image" style="max-width: 100%;" />
-					</div>
-				</div>`;
+                <div style="font-family: Arial, sans-serif; color: #333;">
+                    <h2 style="color: #4CAF50;">Welcome to PriceWatch! 🚀</h2>
+                    <p>Thank you for subscribing to PriceWatch! You're now tracking <strong>${product.title}</strong>.</p>
+                    <p>Here's an <b><i>example</i></b> of what you can expect from us:</p>
+                    <div style="border: 1px solid #eee; padding: 20px; background-color: #f9f9f9; border-radius: 8px;">
+                        <h3 style="color: #4CAF50;">${product.title} is back in stock!</h3>
+                        <p>Don't miss out—<a href="${product.url}" target="_blank" rel="noopener noreferrer" style="color: #2196F3; text-decoration: none;">buy it now</a>!</p>
+                        <img src="${product.image}" alt="Product Image" style="max-width: 100%; border-radius: 8px;" />
+                    </div>
+                </div>`;
             break;
 
         case Notification.CHANGE_OF_STOCK:
-            subject = `${shortenedTitle} is now back in stock!`;
+            subject = `${shortenedTitle} is back in stock!`;
             body = `
-				<div>
-					<h4>Hey, <strong>${product.title}</strong> is now restocked!</h4>
-					<p>See the product <a href="${product.url}" target="_blank" rel="noopener noreferrer">here</a>.</p>
-				</div>`;
+                <div style="font-family: Arial, sans-serif; color: #333;">
+                    <h4 style="color: #4CAF50;">Great news! <strong>${product.title}</strong> is now back in stock!</h4>
+                    <p>Click <a href="${product.url}" target="_blank" rel="noopener noreferrer" style="color: #2196F3; text-decoration: none;">here</a> to check it out.</p>
+                </div>`;
             break;
 
         case Notification.LOWEST_PRICE:
             subject = `Lowest Price Alert for ${shortenedTitle}`;
             body = `
-				<div>
-					<h4>Great news! ${product.title} has reached its lowest price ever!</h4>
-					<p>Check it out <a href="${product.url}" target="_blank" rel="noopener noreferrer">here</a>.</p>
-				</div>`;
+                <div style="font-family: Arial, sans-serif; color: #333;">
+                    <h4 style="color: #FF5722;">Good news! <strong>${product.title}</strong> is now at its lowest price ever!</h4>
+                    <p>Hurry up and grab it at the best price <a href="${product.url}" target="_blank" rel="noopener noreferrer" style="color: #2196F3; text-decoration: none;">here</a>.</p>
+                </div>`;
             break;
 
         case Notification.THRESHOLD_MET:
             subject = `Discount Alert: ${shortenedTitle} at ${THRESHOLD_PERCENTAGE}% Off!`;
             body = `
-				<div>
-					<h4>Get ${product.title} with an amazing ${THRESHOLD_PERCENTAGE}% discount!</h4>
-					<p>Find it <a href="${product.url}" target="_blank" rel="noopener noreferrer">here</a>.</p>
-				</div>`;
+                <div style="font-family: Arial, sans-serif; color: #333;">
+                    <h4 style="color: #FF9800;">Great deal! Get <strong>${product.title}</strong> at ${THRESHOLD_PERCENTAGE}% off!</h4>
+                    <p>Don't miss this offer—find it <a href="${product.url}" target="_blank" rel="noopener noreferrer" style="color: #2196F3; text-decoration: none;">here</a>.</p>
+                </div>`;
             break;
 
         default:
