@@ -12,51 +12,22 @@ function getRandomUserAgent() {
     return USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)];
 }
 
-async function fetchProductPage(
-    url: string,
-    retries = 3,
-    delay = 1000
-): Promise<any> {
-    const userAgent = getRandomUserAgent();
-    for (let attempt = 1; attempt <= retries; attempt++) {
-        try {
-            return await axios.get(url, {
-                headers: { "User-Agent": userAgent },
-                timeout: 10000,
-            });
-        } catch (error) {
-            console.error(
-                `Failed to scrape product at ${url}: ${
-                    (error as Error).message
-                }`
-            );
-
-            if (attempt < retries) {
-                await new Promise((resolve) =>
-                    setTimeout(resolve, delay * attempt)
-                );
-            } else {
-                console.error(`Max retries reached for ${url}`);
-                throw error;
-            }
-        }
-    }
-}
-
 export async function scrapeAmazonProduct(
     url: string
 ): Promise<Product | null> {
     if (!url) return null;
 
     try {
-        const response = await fetchProductPage(url);
-        if (!response || !response.data)
-            throw new Error("Failed to fetch product page data");
+        const response = await axios.get(url, {
+            headers: {
+                "User-Agent": getRandomUserAgent(),
+            },
+        });
 
         const $ = cheerio.load(response.data);
 
-        const title = $("#productTitle").text().trim() || "Unknown Title";
-        const currency = $(".a-price-symbol").text().trim().slice(0, 1) || "$";
+        const title = $("#productTitle").text().trim();
+        const currency = $(".a-price-symbol").text()?.trim().slice(0, 1) || "$";
 
         const currentPriceText = $(".a-price .a-price-whole")
             .first()
@@ -81,19 +52,15 @@ export async function scrapeAmazonProduct(
             .replace(/[-%]/g, "");
         const discountRate = discountRateText ? Number(discountRateText) : 0;
 
-        const outOfStockText = $("#availability span")
-            .text()
-            .trim()
-            .toLowerCase();
         const outOfStock =
-            outOfStockText.includes("currently unavailable") ||
-            outOfStockText.includes("out of stock");
+            $("#availability span").text().trim().toLowerCase() ===
+            "currently unavailable";
 
-        const imagesData =
+        const images =
             $("#imgblkFront").attr("data-a-dynamic-image") ||
             $("#landingImage").attr("data-a-dynamic-image") ||
             "{}";
-        const imageUrls = Object.keys(JSON.parse(imagesData));
+        const imageUrls = Object.keys(JSON.parse(images));
         const image = imageUrls[0] || "";
 
         const category =
@@ -130,11 +97,13 @@ export async function scrapeAmazonProduct(
 
         return data;
     } catch (error) {
-        console.error(
-            `Failed to scrape product at ${url}: ${
-                error instanceof Error ? error.message : "Unknown error"
-            }`
-        );
+        if (error instanceof Error) {
+            console.error(
+                `Failed to scrape product at ${url}: ${error.message}`
+            );
+        } else {
+            console.error(`An unknown error occurred during scraping.`);
+        }
         return null;
     }
 }
