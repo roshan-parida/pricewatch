@@ -2,23 +2,55 @@ import axios from "axios";
 import * as cheerio from "cheerio";
 import { Product } from "@/types";
 
+const USER_AGENTS = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.96 Safari/537.36",
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1",
+];
+
+async function fetchProductPage(
+    url: string,
+    retries = 3,
+    delay = 1000
+): Promise<any> {
+    const userAgent =
+        USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)];
+    for (let attempt = 1; attempt <= retries; attempt++) {
+        try {
+            return await axios.get(url, {
+                headers: { "User-Agent": userAgent },
+                timeout: 10000,
+            });
+        } catch (error) {
+            console.error(
+                `Failed to scrape product at ${url}: ${
+                    (error as Error).message
+                }`
+            );
+
+            if (attempt < retries) {
+                await new Promise((resolve) =>
+                    setTimeout(resolve, delay * attempt)
+                ); // Exponential backoff
+            } else {
+                console.error(`Max retries reached for ${url}`);
+                throw error;
+            }
+        }
+    }
+}
+
 export async function scrapeAmazonProduct(
     url: string
 ): Promise<Product | null> {
     if (!url) return null;
 
     try {
-        const response = await axios.get(url, {
-            headers: {
-                "User-Agent":
-                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36",
-            },
-        });
-
+        const response = await fetchProductPage(url);
         const $ = cheerio.load(response.data);
 
-        const title = $("#productTitle").text().trim();
-        const currency = $(".a-price-symbol").text()?.trim().slice(0, 1) || "$";
+        const title = $("#productTitle").text().trim() || "Unknown Title";
+        const currency = $(".a-price-symbol").text().trim().slice(0, 1) || "$";
 
         const currentPriceText = $(".a-price .a-price-whole")
             .first()
@@ -43,15 +75,19 @@ export async function scrapeAmazonProduct(
             .replace(/[-%]/g, "");
         const discountRate = discountRateText ? Number(discountRateText) : 0;
 
+        const outOfStockText = $("#availability span")
+            .text()
+            .trim()
+            .toLowerCase();
         const outOfStock =
-            $("#availability span").text().trim().toLowerCase() ===
-            "currently unavailable";
+            outOfStockText === "currently unavailable" ||
+            outOfStockText === "out of stock";
 
-        const images =
+        const imagesData =
             $("#imgblkFront").attr("data-a-dynamic-image") ||
             $("#landingImage").attr("data-a-dynamic-image") ||
             "{}";
-        const imageUrls = Object.keys(JSON.parse(images));
+        const imageUrls = Object.keys(JSON.parse(imagesData));
         const image = imageUrls[0] || "";
 
         const category =
@@ -88,13 +124,11 @@ export async function scrapeAmazonProduct(
 
         return data;
     } catch (error) {
-        if (error instanceof Error) {
-            console.error(
-                `Failed to scrape product at ${url}: ${error.message}`
-            );
-        } else {
-            console.error(`An unknown error occurred during scraping.`);
-        }
+        console.error(
+            `Failed to scrape product at ${url}: ${
+                error instanceof Error ? error.message : "Unknown error"
+            }`
+        );
         return null;
     }
 }
