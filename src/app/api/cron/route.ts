@@ -63,6 +63,7 @@ export async function GET(request: Request) {
                                 {
                                     title: updatedProduct.title,
                                     url: updatedProduct.url,
+                                    image: updatedProduct.image,
                                 },
                                 emailNotifType
                             );
