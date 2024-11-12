@@ -32,7 +32,7 @@ export const Searchbar = () => {
         const isValidLink = isValidAmazonProductURL(searchPrompt);
 
         if (!isValidLink) {
-            setError('Please provide a valid "shareable" Amazon product link.');
+            setError("Please provide a url from products address bar");
             return;
         }
 
@@ -50,7 +50,6 @@ export const Searchbar = () => {
                 setError("Product not found.");
             }
         } catch (error) {
-            console.log(error);
             setError(
                 "An error occurred while searching for the product. Please try again."
             );

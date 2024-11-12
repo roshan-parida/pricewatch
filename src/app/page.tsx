@@ -64,7 +64,7 @@ const Home = () => {
             <section className="trending-section py-12 px-6 md:px-20">
                 <h2 className="section-text mb-8">Recent Products</h2>
 
-                {/* Loading State */}
+                {/* No Products State*/}
                 {!loading && !error && allProducts?.length === 0 && (
                     <div className="no-products">
                         <Icon

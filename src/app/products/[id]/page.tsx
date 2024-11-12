@@ -47,13 +47,48 @@ const ProductDetails = ({ params: { id } }: Props) => {
 
     if (loading) {
         return (
-            <div className="product-skeleton flex flex-col gap-6">
-                <div className="skeleton skeleton-title h-8 w-3/4 bg-gray-300 rounded-md"></div>
-                <div className="skeleton skeleton-price h-6 w-1/4 bg-gray-300 rounded-md"></div>
-                <div className="skeleton skeleton-image h-64 w-96 bg-gray-300 rounded-md fade-in"></div>
-                <div className="skeleton skeleton-description h-4 w-full bg-gray-300 rounded-md"></div>
-                <div className="skeleton skeleton-reviews h-5 w-1/2 bg-gray-300 rounded-md"></div>
-                <div className="skeleton skeleton-similar-products h-10 w-full bg-gray-300 rounded-md"></div>
+            <div className="product-skeleton flex flex-col gap-6 p-6 animate-pulse">
+                <div className="skeleton-title h-8 w-3/4 bg-gray-300 rounded-md"></div>
+
+                <div className="skeleton-price h-6 w-1/4 bg-gray-300 rounded-md"></div>
+
+                <div className="skeleton-image h-64 w-full max-w-sm bg-gray-300 rounded-md fade-in"></div>
+
+                <div className="skeleton-description flex flex-col gap-2 mt-6">
+                    <div className="h-4 w-3/5 bg-gray-300 rounded-md"></div>
+                    <div className="h-4 w-1/2 bg-gray-300 rounded-md"></div>
+                    <div className="h-4 w-2/5 bg-gray-300 rounded-md"></div>
+                </div>
+
+                <div className="flex gap-4 mt-4">
+                    <div className="skeleton-stars h-6 w-16 bg-gray-300 rounded-md"></div>
+                    <div className="skeleton-reviews h-6 w-16 bg-gray-300 rounded-md"></div>
+                </div>
+
+                <div className="flex gap-5 mt-6 flex-wrap">
+                    {Array(4)
+                        .fill("")
+                        .map((_, index) => (
+                            <div
+                                key={index}
+                                className="h-20 w-32 bg-gray-300 rounded-md"
+                            ></div>
+                        ))}
+                </div>
+
+                <div className="similar-products-section mt-8">
+                    <div className="h-6 w-32 bg-gray-300 rounded-md mb-4"></div>
+                    <div className="flex gap-5">
+                        {Array(3)
+                            .fill("")
+                            .map((_, index) => (
+                                <div
+                                    key={index}
+                                    className="h-56 w-36 bg-gray-300 rounded-md"
+                                ></div>
+                            ))}
+                    </div>
+                </div>
             </div>
         );
     }

@@ -2,16 +2,6 @@ import axios from "axios";
 import * as cheerio from "cheerio";
 import { Product } from "@/types";
 
-const USER_AGENTS = [
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; en-IN) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7; en-IN) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.96 Safari/537.36",
-    "Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X; en-IN) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1",
-];
-
-function getRandomUserAgent() {
-    return USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)];
-}
-
 export async function scrapeAmazonProduct(
     url: string
 ): Promise<Product | null> {
@@ -20,7 +10,8 @@ export async function scrapeAmazonProduct(
     try {
         const response = await axios.get(url, {
             headers: {
-                "User-Agent": getRandomUserAgent(),
+                "User-Agent":
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36",
             },
         });
 
