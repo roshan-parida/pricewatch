@@ -10,7 +10,7 @@ import Product from "@/lib/models/product";
 import { scrapeAmazonProduct } from "@/lib/scraper";
 import { generateEmailBody, sendEmail } from "@/lib/nodemailer";
 
-export const maxduration = 60;
+export const maxDuration = 60;
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 const MAX_PRODUCTS_PER_BATCH = 5;
